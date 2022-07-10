@@ -45,11 +45,11 @@ export default function App() {
     })
   }
 
-  function addFollowing(fol) {
-    console.log('following', fol)
+  function addFollowing(follow) {
+    console.log('following', follow)
     setFollowing((prevFols) => {
       const newState = [...prevFols]
-      newState.push(fol)
+      newState.push(follow)
       return newState
     })
   }
@@ -67,9 +67,24 @@ export default function App() {
   }
 
   function toggleFollowing() {
+    console.log(following)
     setAllToggle(false)
     setFavoriteToggle(false)
     setFollowingToggle(true)
+  }
+
+  function deleteFav(fav) {
+    console.log('deleting', fav)
+    favorites.filter(deleted => deleted !== fav)
+  }
+
+  function deleteFollow(follow) {
+    console.log('deleting', follow)
+    setFollowing((prevFols) => {
+      const newState = [...prevFols]
+      newState.filter(deleted => deleted !== follow)
+      return newState
+    })
   }
 
 
@@ -90,26 +105,31 @@ export default function App() {
             return allToggle && <div className="flex flex-row justify-between mt-2" key={addyOrENS}>
               <h1>{addyOrENS}</h1>
               <div className="flex flex-row">
-                <button className="rounded bg-slate-200 mr-1 p-1 hover:bg-slate-600" onClick={() => addFavorite(addyOrENS)}>hello</button>
-                <button className="rounded bg-slate-200 p-1 hover:bg-slate-600" onClick={() => addFollowing(addyOrENS)}>goodbye</button>
+                <button className="w-20 rounded bg-slate-200 mr-1 p-1 hover:bg-slate-600" onClick={() => addFavorite(addyOrENS)}>favorite</button>
+                <button className="w-20 rounded bg-slate-200 p-1 hover:bg-slate-600" onClick={() => addFollowing(addyOrENS)}>follow</button>
               </div>
             </div>
           })
         }
         {
           favorites.map((fav) => {
-            return favoriteToggle && <div className="mt-2" key={fav}>
+            return favoriteToggle && <div className="flex flex-row justify-between mt-2" key={fav}>
               <h1>{fav}</h1>
+              <button className="rounded bg-slate-200 hover:bg-slate-600 p-1" onClick={() => deleteFav(fav)}>delete</button>
             </div>
           })
         }
         {
           following.map((follow) => {
-            return followingToggle && <div className="mt-2" key={follow}>
+            return followingToggle && <div className="flex flex-row justify-between mt-2" key={follow}>
               <h1>{follow}</h1>
+              <button className="rounded bg-slate-200 hover:bg-slate-600 p-1" onClick={() => deleteFollow(follow)}>delete</button>
             </div>
           })
         }
+      </div>
+      <div className="mt-48 flex flex-row justify-center mx-auto">
+        <h1>hello bundle daddy</h1>
       </div>
     </div>
   )
