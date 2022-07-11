@@ -7,11 +7,15 @@ export default function App() {
   const [addressBook, setAddressBook] = useState([]);
   const [favorites, setFavorites] = useState([]);
   const [following, setFollowing] = useState([]);
+  const [currentBundle, setCurrentBundle] = useState([]);
+  const [bundles, setBundles] = useState([]);
   const [searchAddress, setSearchAddress] = useState('');
+  const [currentBundleName, setCurrentBundleName] = useState('');
   const [searchError, setSearchError] = useState(false);
   const [allToggle, setAllToggle] = useState(true);
   const [favoriteToggle, setFavoriteToggle] = useState(false);
   const [followingToggle, setFollowingToggle] = useState(false);
+  const [popupToggle, setPopupToggle] = useState(false);
 
   async function validateAddress() {
     setSearchError(false)
@@ -37,7 +41,6 @@ export default function App() {
   }
 
   function addFavorite(fav) {
-    console.log('favorite', fav)
     setFavorites((prevFavs) => {
       const newState = [...prevFavs]
       newState.push(fav)
@@ -46,7 +49,6 @@ export default function App() {
   }
 
   function addFollowing(follow) {
-    console.log('following', follow)
     setFollowing((prevFols) => {
       const newState = [...prevFols]
       newState.push(follow)
@@ -67,22 +69,27 @@ export default function App() {
   }
 
   function toggleFollowing() {
-    console.log(following)
     setAllToggle(false)
     setFavoriteToggle(false)
     setFollowingToggle(true)
   }
 
+  function togglePopup() {
+    setPopupToggle(!popupToggle)
+  }
+
   function deleteFav(fav) {
-    console.log('deleting', fav)
-    favorites.filter(deleted => deleted !== fav)
+    setFavorites((favorites) => favorites.filter(deleted => deleted != fav))
   }
 
   function deleteFollow(follow) {
-    console.log('deleting', follow)
-    setFollowing((prevFols) => {
-      const newState = [...prevFols]
-      newState.filter(deleted => deleted !== follow)
+    setFollowing((following) => following.filter(deleted => deleted != follow))
+  }
+
+  function addToCurrentBundle(wallet) {
+    setCurrentBundle((prevBundle) => {
+      const newState = [...prevBundle]
+      newState.push(wallet)
       return newState
     })
   }
@@ -128,9 +135,49 @@ export default function App() {
           })
         }
       </div>
-      <div className="mt-48 flex flex-row justify-center mx-auto">
-        <h1>hello bundle daddy</h1>
+      <div className="mt-48 flex flex-col justify-center mx-auto">
+        <h1 className="mb-5">hello bundle daddy</h1>
+        <button className="rounded bg-slate-200 hover:bg-slate-600 p-1" onClick={togglePopup}>create bundle</button>
       </div>
+      {
+        popupToggle && <div className="fixed bg-[#00000050] w-[100%] h-[100vh] top-0 left-0">
+          <div className="w-1/2 my-0 mx-auto mt-48 bg-slate-300 rounded-lg overflow-auto flex flex-col p-4">
+            <div className="flex flex-row justify-between mb-5">
+              <h1>create bundle</h1>
+              <button onClick={togglePopup}>x</button>
+            </div>
+            <h3>bundle name</h3>
+            <input className="mt-2 rounded bg-slate-200 pl-2 w-48" type="text" value={currentBundleName} onChange={(e) => setCurrentBundleName(e.target.value)}/>
+            <div className="my-4 border-t-2 border-slate-600"></div>
+            <h3>wallets to include</h3>
+            {
+              addressBook.map((addyOrENS) => {
+                return allToggle && <div className="flex flex-row justify-between mt-2" key={addyOrENS}>
+                  <h1>{addyOrENS}</h1>
+                  <button className="rounded px-1 bg-slate-600 hover:bg-black hover:text-white" onClick={() => addToCurrentBundle(addyOrENS)}>include</button>
+                </div>
+              })
+            }
+            {
+              currentBundle.length > 0 && <div className="flex flex-col">
+                <div className="my-4 border-t-2 border-slate-600"></div>
+                <h3>included wallets</h3>
+                <div className="flex flex-row">
+                  {
+                    currentBundle.map((wallet) => {
+                      return <h3 className="mr-4">{wallet}</h3>
+                    })
+                  }
+                </div>
+              </div>
+            }
+            <div className="flex flex-row mt-8">
+              <button className="w-20 mr-2 rounded bg-slate-200 hover:bg-black hover:text-white" onClick={togglePopup}>cancel</button>
+              <button className="w-20 rounded bg-slate-200 hover:bg-black hover:text-white">save</button>
+            </div>
+          </div>
+        </div>
+      }
     </div>
   )
 }
