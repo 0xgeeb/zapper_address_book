@@ -74,8 +74,14 @@ export default function App() {
     setFollowingToggle(true)
   }
 
-  function togglePopup() {
-    setPopupToggle(!popupToggle)
+  function openPopup() {
+    setPopupToggle(true)
+  }
+
+  function closePopup() {
+    setCurrentBundle([])
+    setCurrentBundleName('')
+    setPopupToggle(false)
   }
 
   function deleteFav(fav) {
@@ -94,90 +100,137 @@ export default function App() {
     })
   }
 
+  function addBundle(name, wallets) {
+    setBundles((prevBundles) => {
+      const newState = [...prevBundles]
+      newState.push({
+        name: name,
+        wallets: wallets
+      })
+      return newState
+    })
+    setCurrentBundle([])
+    setCurrentBundleName('')
+    setPopupToggle(false)
+  }
+
+
 
   return (
-    <div className="flex flex-col justify-center mt-36">
-      <h1 className="text-red-500 mx-auto">address book</h1>
-      <input className={`w-72 ${searchError ? "bg-red-500" : "bg-slate-200"} mx-auto mt-12 rounded pl-2 py-2`} type="text" placeholder="Search Address" value={searchAddress} onChange={(e) => setSearchAddress(e.target.value)}/>
-      <button className={`w-24 ${searchError ? "bg-red-500" : "bg-slate-200"} mx-auto mt-4 rounded hover:bg-slate-600`} onClick={validateAddress}>search</button>
-      <span className={`${searchError ? "text-red-500" : "text-white"} mt-2 mx-auto`}>not a valid wallet address</span>
-      <div className="flex flex-row justify-center mx-auto mb-4">
-        <button className="rounded bg-slate-200 p-1 mr-1 hover:bg-slate-600" onClick={toggleAll}>All</button>
-        <button className="rounded bg-slate-200 p-1 mr-1 hover:bg-slate-600" onClick={toggleFavorites}>Favorites</button>
-        <button className="rounded bg-slate-200 p-1 hover:bg-slate-600" onClick={toggleFollowing}>Following</button>
-      </div>
-      <div className="flex flex-col justify-center w-2/3 mx-auto">
-        {
-          addressBook.map((addyOrENS) => {
-            return allToggle && <div className="flex flex-row justify-between mt-2" key={addyOrENS}>
-              <h1>{addyOrENS}</h1>
-              <div className="flex flex-row">
-                <button className="w-20 rounded bg-slate-200 mr-1 p-1 hover:bg-slate-600" onClick={() => addFavorite(addyOrENS)}>favorite</button>
-                <button className="w-20 rounded bg-slate-200 p-1 hover:bg-slate-600" onClick={() => addFollowing(addyOrENS)}>follow</button>
+    <div className="bg-slate-800 min-h-screen min-w-screen">
+      <div className="w-5/6 min-h-screen border-x-2 border-slate-400 mx-auto">
+        <div className="flex flex-col justify-center mx-auto">
+          <div className="mt-20 w-[100%] border-b-2 border-slate-400">
+            <h1 className="text-slate-200 ml-12 lg:ml-36 text-3xl mb-1">Zapper Address Book Assignment</h1>
+          </div>
+          <div className="flex flex-row justify-between w-5/6 mx-auto mt-10">
+            <h1 className="mb-5 text-slate-200 text-xl">My Bundles</h1>
+            <button className="rounded-xl bg-slate-200 hover:bg-slate-400 h-8 px-3" onClick={openPopup}>Create Bundle</button>
+          </div>
+          <div className="rounded-xl border-2 border-slate-200 h-56 w-5/6 mx-auto overflow-x-auto" id="hide-scrollbar">
+            {
+              bundles.length > 0 && <div className="flex flex-row">
+                {
+                  bundles.map((bundle) => {
+                    return <div className="m-3 p-1 bg-slate-400 border-2 b-slate-200 rounded-xl flex flex-col w-48 overflow-x-hidden" key={bundle.name}>
+                      <h3 className="text-slate-200 mx-auto">{bundle.name}</h3>
+                      <div className="w-[100%] border-b-2 border-slate-200"></div>
+                      {
+                        bundle.wallets.map((wallet) => {
+                          return <h3 className="text-slate-200">{wallet}</h3>
+                        })
+                      }
+                    </div>
+                  })
+                }
+              </div>
+            }
+          </div>
+          {
+            popupToggle && <div className="fixed bg-[#00000050] w-[100%] h-[100vh] top-0 left-0">
+              <div className="w-1/2 my-0 mx-auto mt-48 bg-slate-800 rounded-lg overflow-auto flex flex-col p-4">
+                <div className="flex flex-row justify-between mb-8">
+                  <h1 className="text-2xl text-slate-200">Create Bundle</h1>
+                  <button className="bg-slate-200 hover:bg-slate-400 rounded-xl px-3" onClick={closePopup}>x</button>
+                </div>
+                <h3 className="text-xl text-slate-200">Bundle Name</h3>
+                <input className="mt-2 mb-2 rounded-xl bg-slate-200 py-1 pl-3 w-72 focus:outline-0" type="text" value={currentBundleName} placeholder="Search Address" onChange={(e) => setCurrentBundleName(e.target.value)}/>
+                <div className="my-4 border-t-2 border-slate-400"></div>
+                <h3 className="text-xl text-slate-200 mb-2">Wallets to Include</h3>
+                {
+                  addressBook.map((addyOrENS) => {
+                    return allToggle && <div className="flex flex-row justify-between mt-2" key={addyOrENS}>
+                      <h1 className="text-slate-200">{addyOrENS}</h1>
+                      <button className="rounded-xl px-3 bg-slate-200 hover:bg-slate-400" onClick={() => addToCurrentBundle(addyOrENS)}>include</button>
+                    </div>
+                  })
+                }
+                {
+                  currentBundle.length > 0 && <div className="flex flex-col">
+                    <div className="my-4 border-t-2 border-slate-400"></div>
+                    <h3 className="text-xl text-slate-200 mb-4">Included Wallets</h3>
+                    <div className="flex flex-row overflow-x-auto h-12" id="hide-scrollbar">
+                      {
+                        currentBundle.map((wallet) => {
+                          return <h3 className="mr-4 text-slate-200" key={wallet}>{wallet}</h3>
+                        })
+                      }
+                    </div>
+                  </div>
+                }
+                <div className="flex flex-row mt-4">
+                  <button className="w-20 mr-2 rounded-xl bg-slate-200 hover:bg-slate-400" onClick={closePopup}>Cancel</button>
+                  <button className="w-20 rounded-xl bg-slate-200 hover:bg-slate-400" onClick={() => addBundle(currentBundleName, currentBundle)}>Save</button>
+                </div>
               </div>
             </div>
-          })
-        }
-        {
-          favorites.map((fav) => {
-            return favoriteToggle && <div className="flex flex-row justify-between mt-2" key={fav}>
-              <h1>{fav}</h1>
-              <button className="rounded bg-slate-200 hover:bg-slate-600 p-1" onClick={() => deleteFav(fav)}>delete</button>
+          }
+          <div className="flex flex-row w-5/6 lg:w-2/3 mx-auto mt-14 items-center justify-between">
+            <div className="flex flex-row items-center">
+              <input className={`w-72 ${searchError ? "bg-red-500" : "bg-slate-200"} focus:outline-0 mr-6 rounded-xl pl-2 py-2`} type="text" placeholder="Search Address" value={searchAddress} onChange={(e) => setSearchAddress(e.target.value)}/>
+              <button className="w-24 bg-slate-200 h-8 px-3 rounded-xl hover:bg-slate-400" onClick={validateAddress}>Search</button>
             </div>
-          })
-        }
-        {
-          following.map((follow) => {
-            return followingToggle && <div className="flex flex-row justify-between mt-2" key={follow}>
-              <h1>{follow}</h1>
-              <button className="rounded bg-slate-200 hover:bg-slate-600 p-1" onClick={() => deleteFollow(follow)}>delete</button>
+            <div className="flex flex-row items-center">
+              <button className={`rounded-xl ${allToggle ? "bg-slate-400" : "bg-slate-200"} px-4 mr-3 hover:bg-slate-400`} onClick={toggleAll}>All</button>
+              <button className={`rounded-xl ${favoriteToggle ? "bg-slate-400" : "bg-slate-200"} px-4 mr-3 hover:bg-slate-400`} onClick={toggleFavorites}>Favorites</button>
+              <button className={`rounded-xl ${followingToggle ? "bg-slate-400" : "bg-slate-200"} px-4 hover:bg-slate-400`} onClick={toggleFollowing}>Following</button>
             </div>
-          })
-        }
-      </div>
-      <div className="mt-48 flex flex-col justify-center mx-auto">
-        <h1 className="mb-5">hello bundle daddy</h1>
-        <button className="rounded bg-slate-200 hover:bg-slate-600 p-1" onClick={togglePopup}>create bundle</button>
-      </div>
-      {
-        popupToggle && <div className="fixed bg-[#00000050] w-[100%] h-[100vh] top-0 left-0">
-          <div className="w-1/2 my-0 mx-auto mt-48 bg-slate-300 rounded-lg overflow-auto flex flex-col p-4">
-            <div className="flex flex-row justify-between mb-5">
-              <h1>create bundle</h1>
-              <button onClick={togglePopup}>x</button>
-            </div>
-            <h3>bundle name</h3>
-            <input className="mt-2 rounded bg-slate-200 pl-2 w-48" type="text" value={currentBundleName} onChange={(e) => setCurrentBundleName(e.target.value)}/>
-            <div className="my-4 border-t-2 border-slate-600"></div>
-            <h3>wallets to include</h3>
+          </div>
+          <div className="w-5/6 lg:w-2/3 mx-auto mt-2">
+            <span className={`${searchError ? "text-red-500" : "text-slate-800"} ml-2`}>not a valid wallet address</span>
+          </div>
+          <div className="flex flex-col justify-center w-2/3 mx-auto mt-5">
+            <h1 className="text-2xl text-slate-200 mb-6">Wallets</h1>
             {
               addressBook.map((addyOrENS) => {
                 return allToggle && <div className="flex flex-row justify-between mt-2" key={addyOrENS}>
-                  <h1>{addyOrENS}</h1>
-                  <button className="rounded px-1 bg-slate-600 hover:bg-black hover:text-white" onClick={() => addToCurrentBundle(addyOrENS)}>include</button>
+                  <h1 className="text-lg text-slate-200">{addyOrENS}</h1>
+                  <div className="flex flex-row">
+                    <button className="w-20 rounded-xl bg-slate-200 mr-1 p-1 hover:bg-slate-400" onClick={() => addFavorite(addyOrENS)}>Favorite</button>
+                    <button className="w-20 rounded-xl bg-slate-200 p-1 hover:bg-slate-400" onClick={() => addFollowing(addyOrENS)}>Follow</button>
+                  </div>
                 </div>
               })
             }
             {
-              currentBundle.length > 0 && <div className="flex flex-col">
-                <div className="my-4 border-t-2 border-slate-600"></div>
-                <h3>included wallets</h3>
-                <div className="flex flex-row">
-                  {
-                    currentBundle.map((wallet) => {
-                      return <h3 className="mr-4">{wallet}</h3>
-                    })
-                  }
+              favorites.map((fav) => {
+                return favoriteToggle && <div className="flex flex-row justify-between mt-2" key={fav}>
+                  <h1 className="text-lg text-slate-200">{fav}</h1>
+                  <button className="w-20 rounded-xl bg-slate-200 hover:bg-slate-400 p-1" onClick={() => deleteFav(fav)}>Delete</button>
                 </div>
-              </div>
+              })
             }
-            <div className="flex flex-row mt-8">
-              <button className="w-20 mr-2 rounded bg-slate-200 hover:bg-black hover:text-white" onClick={togglePopup}>cancel</button>
-              <button className="w-20 rounded bg-slate-200 hover:bg-black hover:text-white">save</button>
-            </div>
+            {
+              following.map((follow) => {
+                return followingToggle && <div className="flex flex-row justify-between mt-2" key={follow}>
+                  <h1 className="text-lg text-slate-200">{follow}</h1>
+                  <button className="w-20 rounded-xl bg-slate-200 hover:bg-slate-400 p-1" onClick={() => deleteFollow(follow)}>Delete</button>
+                </div>
+              })
+            }
           </div>
         </div>
-      }
+      </div>
     </div>
   )
 }
