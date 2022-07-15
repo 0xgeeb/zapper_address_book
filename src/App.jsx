@@ -1,5 +1,6 @@
 import { React, useState } from "react";
 import { ethers, utils } from "ethers";
+import axios from "axios";
 import "./index.css";
 
 export default function App() {
@@ -16,6 +17,9 @@ export default function App() {
   const [favoriteToggle, setFavoriteToggle] = useState(false);
   const [followingToggle, setFollowingToggle] = useState(false);
   const [popupToggle, setPopupToggle] = useState(false);
+  const [tokenBalances, setTokenBalances] = useState([]);
+
+  const address = "0x636F33Aa381A7022dBb7206908B2B66C78960FA0";
 
   async function validateAddress() {
     setSearchError(false)
@@ -113,6 +117,90 @@ export default function App() {
     setCurrentBundleName('')
     setPopupToggle(false)
   }
+
+  async function testEndpoint() {
+    const response = await axios.get(`/minecraftspeedrun/eth/?address=${address}`)
+    if(response.data == "error") {
+      console.log('error yo')
+    }
+    else {
+      const result = response.data.result
+      getTokens(result)
+    }
+  }
+
+  function getTokens(result) {
+    result.forEach(tx => {
+      if (tx.to.toLowerCase() == address.toLowerCase()) {
+        // console.log(`${tx.tokenSymbol}: ${ethers.utils.formatUnits(tx.value, tx.tokenDecimal)}`)
+        setTokenBalances((prevBalances) => {
+          const newState = [...prevBalances]
+          newState.push({
+            token: tx.tokenSymbol,
+            amount: ethers.utils.formatUnits(tx.value, tx.tokenDecimal)
+          })
+          return newState
+        })
+      }
+    })
+    console.log('got tokens')
+  }
+
+  function calcState() {
+    setTokenBalances((prevBalances) => {
+      const newState = [...prevBalances]
+      newState.reduce((acc, val) => {
+        let o = acc.filter(obj => {
+          return obj.token==val.token;
+        }).pop() || {token:val.token, amount:0}
+        o.amount += val.tokenacc.push(o)
+        return acc
+      })
+      return newState
+    })
+    console.log('calculated state')
+  }
+
+  function testState() {
+    console.log(tokenBalances)
+  }
+
+  // async function findBalances(balances) {
+  //   const nonZeroBalances = balances.tokenBalances.filter(token => {
+  //     return token.tokenBalance !== '0x0000000000000000000000000000000000000000000000000000000000000000'
+  //   })
+
+  //   console.log(`token balances of ${address}`)
+    
+  //   for (let token of nonZeroBalances) {
+  //     let balance = token['tokenBalance']
+
+  //     const metadataParams = JSON.stringify({
+  //       "jsonrpc": "2.0",
+  //       "method": "alchemy_getTokenMetadata",
+  //       "params": [
+  //         `${token['contractAddress']}`
+  //       ],
+  //       "id": 42
+  //     });
+    
+  //     const metadataConfig = {
+  //        method: 'post',
+  //        url: 'https://eth-mainnet.g.alchemy.com/v2/0Q8uQLMDB-VGKYbvChaow_zXWUQKmWwG',
+  //        headers: {
+  //          'Content-Type': 'application/json'
+  //        },
+  //        data : metadataParams
+  //     };
+
+  //     const responseDos = await axios(metadataConfig)
+
+  //     balance = balance/Math.pow(10, responseDos.data.result.decimals)
+  //     balance = balance.toFixed(2)
+
+  //     console.log(`${responseDos.data.result.symbol}: ${balance}`)
+  //   }
+  // }
 
 
 
@@ -229,6 +317,9 @@ export default function App() {
               })
             }
           </div>
+          <button className="w-48 mx-auto bg-slate-200 hover:bg-slate-400 p-1 rounded-xl mt-16" onClick={testEndpoint}>test getting tokens</button>
+          <button className="w-48 mx-auto bg-slate-200 hover:bg-slate-400 p-1 rounded-xl mt-16" onClick={calcState}>calc state</button>
+          <button className="w-48 mx-auto bg-slate-200 hover:bg-slate-400 p-1 rounded-xl mt-16" onClick={testState}>test state</button>
         </div>
       </div>
     </div>
